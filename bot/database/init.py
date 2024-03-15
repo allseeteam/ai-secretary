@@ -4,7 +4,7 @@ import logging
 
 
 class AISecretarySQLiteDBSettings(BaseSettings):
-    sqlite_db_name: str = 'ai-secretary.db'
+    sqlite_db_name: str = 'bot/database/ai-secretary.db'
 
     class Config:
         env_file = 'env/.env.sqlite'
