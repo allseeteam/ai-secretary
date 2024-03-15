@@ -1,0 +1,10 @@
+.idea
+venv
+data
+telegram-bot-api
+
+env/.env.bot
+env/.env.api
+env/env.sqlite
+setup.local-tg-api.sh
+bot/database/ai-secretary.db
