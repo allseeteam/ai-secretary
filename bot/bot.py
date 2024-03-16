@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 
-from handlers import start
+from handlers import start, handle_query
 
 
 class AISecretaryTGBotSettings(BaseSettings):
@@ -23,8 +23,10 @@ def main() -> None:
                    .read_timeout(settings.telegram_bot_read_timeout)
                    .connect_timeout(settings.telegram_bot_connect_timeout)
                    .build())
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(MessageHandler(filters.AUDIO, start))
+    # application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(handle_query))
+    # application.add_handler(MessageHandler(filters.AUDIO, ...))
     application.run_polling()
 
 

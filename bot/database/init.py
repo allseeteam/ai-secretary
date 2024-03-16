@@ -1,6 +1,7 @@
-import sqlite3
-from pydantic_settings import BaseSettings
 import logging
+import sqlite3
+
+from pydantic_settings import BaseSettings
 
 
 class AISecretarySQLiteDBSettings(BaseSettings):
@@ -25,6 +26,7 @@ def init_db(db_file) -> None:
         (
         id INTEGER PRIMARY KEY,
         chat_id INTEGER, 
+        title TEXT,
         audio_file_path TEXT, 
         status TEXT, 
         FOREIGN KEY(chat_id) REFERENCES users(chat_id)

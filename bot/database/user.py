@@ -1,6 +1,7 @@
-import sqlite3
-from pydantic_settings import BaseSettings
 import logging
+import sqlite3
+
+from pydantic_settings import BaseSettings
 
 
 class AISecretarySQLiteDBSettings(BaseSettings):
