@@ -1,6 +1,6 @@
-from .main_menu import get_main_menu_markup
+from .main_menu import create_main_menu_markup
 
 
 __all__ = [
-    'get_main_menu_markup',
+    'create_main_menu_markup',
 ]

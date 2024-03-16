@@ -1,41 +1,51 @@
+import logging
 import sqlite3
-from pydantic_settings import BaseSettings
+
+from .db_connection import with_sqlite_connection
 
 
-class AISecretarySQLiteDBSettings(BaseSettings):
-    sqlite_db_name: str = 'bot/database/ai-secretary.db'
+@with_sqlite_connection
+def add_transcription_to_db(
+        db_connection: sqlite3.Connection,
+        chat_id: int,
+        title: str,
+        audio_file_path: str,
+        status: str
+) -> int:
+    cursor: sqlite3.Cursor = db_connection.cursor()
 
-    class Config:
-        env_file = 'env/.env.sqlite'
+    cursor.execute(
+        '''
+        INSERT INTO transcriptions 
+        (chat_id, title, audio_file_path, status) 
+        VALUES (?, ?, ?, ?)
+        ''',
+        (chat_id, title, audio_file_path, status)
+    )
 
+    transcription_id = cursor.lastrowid
 
-def add_transcription_to_db(chat_id, title, audio_file_path, status):
-    settings = AISecretarySQLiteDBSettings()
-    conn = sqlite3.connect(settings.sqlite_db_name)
-    c = conn.cursor()
-    c.execute("INSERT INTO transcriptions (chat_id, title, audio_file_path, status) VALUES (?, ?, ?, ?)",
-              (chat_id, title, audio_file_path, status))
-    transcription_id = c.lastrowid
-    conn.commit()
-    conn.close()
+    db_connection.commit()
+    logging.info(f'Transcription {title} added to db with id {transcription_id}')
+
     return transcription_id
 
 
-def add_transcription_result(transcription_id, full_text):
-    settings = AISecretarySQLiteDBSettings()
-    conn = sqlite3.connect(settings.sqlite_db_name)
-    c = conn.cursor()
-    c.execute("INSERT INTO transcription_texts (transcription_id, full_text) VALUES (?, ?)",
-              (transcription_id, full_text))
-    conn.commit()
-    conn.close()
+@with_sqlite_connection
+def update_transcription_status(
+        db_connection: sqlite3.Connection,
+        transcription_id: int,
+        new_status: str
+) -> None:
+    cursor: sqlite3.Cursor = db_connection.cursor()
 
+    cursor.execute(
+        '''
+        UPDATE transcriptions 
+        SET status = ? 
+        WHERE id = ?
+        ''',
+        (new_status, transcription_id))
 
-def update_transcription_status(transcription_id, new_status):
-    settings = AISecretarySQLiteDBSettings()
-    conn = sqlite3.connect(settings.sqlite_db_name)
-    c = conn.cursor()
-    c.execute("UPDATE transcriptions SET status = ? WHERE id = ?", (new_status, transcription_id))
-    conn.commit()
-    conn.close()
-
+    db_connection.commit()
+    logging.info(f'Transcription {transcription_id} status updated to {new_status}')

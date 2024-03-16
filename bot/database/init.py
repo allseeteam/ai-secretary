@@ -1,26 +1,20 @@
 import logging
 import sqlite3
 
-from pydantic_settings import BaseSettings
+from .db_connection import with_sqlite_connection
 
 
-class AISecretarySQLiteDBSettings(BaseSettings):
-    sqlite_db_name: str = 'bot/database/ai-secretary.db'
+@with_sqlite_connection
+def init_db(db_connection: sqlite3.Connection) -> None:
+    cursor: sqlite3.Cursor = db_connection.cursor()
 
-    class Config:
-        env_file = 'env/.env.sqlite'
-
-
-def init_db(db_file) -> None:
-    conn = sqlite3.connect(db_file)
-    c = conn.cursor()
-    c.execute(
+    cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS users
         (chat_id INTEGER PRIMARY KEY, username TEXT)
         '''
     )
-    c.execute(
+    cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS transcriptions
         (
@@ -33,7 +27,7 @@ def init_db(db_file) -> None:
         )
         '''
     )
-    c.execute(
+    cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS transcription_texts
         (
@@ -43,15 +37,6 @@ def init_db(db_file) -> None:
         )
         '''
     )
-    conn.commit()
-    conn.close()
 
-
-def main() -> None:
-    settings = AISecretarySQLiteDBSettings()
-    init_db(settings.sqlite_db_name)
+    db_connection.commit()
     logging.info(f'Database {settings.sqlite_db_name} initialized')
-
-
-if __name__ == '__main__':
-    main()
