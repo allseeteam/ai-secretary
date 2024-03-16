@@ -31,8 +31,8 @@ def setup_and_start_bot() -> None:
     application.add_handler(CallbackQueryHandler(handle_callback_query))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     application.add_handler(MessageHandler(filters.AUDIO, handle_audio))
-    application.run_polling()
     logging.info("Bot started!")
+    application.run_polling()
 
 
 if __name__ == '__main__':
