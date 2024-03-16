@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 
-from handlers import start, handle_query
+from handlers import start, handle_query, handle_audio, handle_text
 
 
 class AISecretaryTGBotSettings(BaseSettings):
@@ -26,7 +26,8 @@ def main() -> None:
     # application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(handle_query))
-    # application.add_handler(MessageHandler(filters.AUDIO, ...))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+    application.add_handler(MessageHandler(filters.AUDIO, handle_audio))
     application.run_polling()
 
 
