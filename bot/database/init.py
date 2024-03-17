@@ -11,7 +11,11 @@ def init_db(db_connection: sqlite3.Connection) -> None:
     cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS users
-        (chat_id INTEGER PRIMARY KEY, username TEXT)
+        (
+        chat_id INTEGER PRIMARY KEY, 
+        username TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
         '''
     )
     cursor.execute(
@@ -23,6 +27,8 @@ def init_db(db_connection: sqlite3.Connection) -> None:
         title TEXT,
         audio_file_path TEXT, 
         status TEXT, 
+        transcription_api_task_id TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(chat_id) REFERENCES users(chat_id)
         )
         '''
@@ -33,10 +39,11 @@ def init_db(db_connection: sqlite3.Connection) -> None:
         (
         transcription_id INTEGER,
         full_text TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(transcription_id) REFERENCES transcriptions(id)
         )
         '''
     )
 
     db_connection.commit()
-    logging.info(f'Database {settings.sqlite_db_name} initialized')
+    logging.info(f'Database initialized')

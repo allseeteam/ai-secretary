@@ -1,8 +1,14 @@
 from pydantic_settings import BaseSettings
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 import logging
+from database import init_db
+from threading import Thread
+import asyncio
+import signal
+from typing import Any
 
 from handlers import handle_start, handle_callback_query, handle_audio, handle_text
+from loop_workers import upload_any_files_to_transcription_api, fetch_any_transcription_from_api
 
 
 class AISecretaryTGBotSettings(BaseSettings):
@@ -16,10 +22,15 @@ class AISecretaryTGBotSettings(BaseSettings):
 
 
 settings = AISecretaryTGBotSettings()
+run_background_loops = True
+
+
+def signal_handler(signum: int, frame: Any) -> None:
+    global run_background_loops
+    run_background_loops = False
 
 
 def setup_and_start_bot() -> None:
-    logging.info("Starting bot...")
     application = (Application
                    .builder()
                    .token(settings.telegram_bot_token)
@@ -31,12 +42,34 @@ def setup_and_start_bot() -> None:
     application.add_handler(CallbackQueryHandler(handle_callback_query))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     application.add_handler(MessageHandler(filters.AUDIO, handle_audio))
-    logging.info("Bot started!")
     application.run_polling()
 
 
-if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)
+def upload_files_to_transcription_api_loop():
+    while run_background_loops:
+        asyncio.run(upload_any_files_to_transcription_api())
+        asyncio.run(asyncio.sleep(10))
 
+
+def fetch_transcriptions_from_api_loop():
+    while run_background_loops:
+        asyncio.run(fetch_any_transcription_from_api())
+        asyncio.run(asyncio.sleep(10))
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    logging.info("Setting up database...")
+    init_db()
+
+    logging.info("Starting background loops...")
+    Thread(target=upload_files_to_transcription_api_loop, daemon=True).start()
+    Thread(target=fetch_transcriptions_from_api_loop, daemon=True).start()
+
+    logging.info("Starting bot...")
     setup_and_start_bot()

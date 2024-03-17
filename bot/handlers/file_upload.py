@@ -18,16 +18,20 @@ async def handle_audio(
         audio_file: Coroutine = await context.bot.get_file(audio_file_id)
         audio_file_path: str = audio_file.file_path
 
-        transcription_id: int = add_transcription_to_db(chat_id, transcription_title, audio_file_path, "Audio Uploaded")
+        add_transcription_to_db(
+            chat_id,
+            transcription_title,
+            audio_file_path,
+            "Awaiting upload to transcription API"
+        )
+        await update.message.reply_text(
+            f"Транскрипция '{transcription_title}' добавлена, aудиофайл находится в обработке."
+        )
 
-        await update.message.reply_text(f"Транскрипция '{transcription_title}' добавлена, aудиофайл находится в обработке.")
-        await asyncio.sleep(5)
-        add_transcription_text_to_db(transcription_id, "Это тестовый результат транскрипции.")
-        update_transcription_status(transcription_id, "Processed")
-
-        await update.message.reply_text("Обработка завершена!")
         context.user_data['awaiting_audio'] = False
         context.user_data.pop('transcription_title', None)
 
     else:
-        await update.message.reply_text("Для добавления новой транскрипции выберите соответствующий пункт в меню.")
+        await update.message.reply_text(
+            "Для добавления новой транскрипции выберите соответствующий пункт в меню."
+        )

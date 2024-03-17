@@ -5,6 +5,7 @@ telegram-bot-api
 
 env/.env.bot
 env/.env.api
-env/env.sqlite
+env/.env.sqlite
+env/.env.transcriptor
 setup.local-tg-api.sh
 bot/database/ai-secretary.db

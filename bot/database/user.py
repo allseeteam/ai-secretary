@@ -29,4 +29,4 @@ def add_user_to_db(
         )
 
         db_connection.commit()
-        logging.info(f'User {username} added to db')
+        logging.debug(f'User {username} added to db')
