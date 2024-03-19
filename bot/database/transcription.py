@@ -62,7 +62,7 @@ def get_user_transcriptions_with_given_status(
 
     cursor.execute(
         '''
-        SELECT title 
+        SELECT id, title 
         FROM transcriptions 
         WHERE chat_id = ? AND status = ?
         ''',

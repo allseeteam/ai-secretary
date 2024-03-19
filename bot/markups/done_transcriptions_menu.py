@@ -15,7 +15,7 @@ def create_done_transcriptions_menu_markup(
     done_transcriptions: List[tuple] = get_user_transcriptions_with_given_status(chat_id, "Transcribed")
 
     keyboard = [
-        [InlineKeyboardButton(transcription[0], callback_data=f"change_menu_transcription:{transcription[0]}")]
+        [InlineKeyboardButton(transcription[1], callback_data=f"change_menu_transcription:{transcription[0]}")]
         for transcription in done_transcriptions
     ]
     keyboard.append([InlineKeyboardButton("« Вернуться в главное меню", callback_data="change_menu_main")])

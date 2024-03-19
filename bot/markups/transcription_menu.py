@@ -7,7 +7,7 @@ def create_transcription_menu_markup(
         context: ContextTypes.DEFAULT_TYPE
 ) -> InlineKeyboardMarkup:
     callback_query: CallbackQuery = update.callback_query
-    transcription_id: str = callback_query.data.split("_")[1]
+    transcription_id: str = callback_query.data.split(":")[-1]
 
     keyboard = [
         [InlineKeyboardButton("Текст транскрипции", callback_data=f"change_menu_transcription_text:{transcription_id}")],
