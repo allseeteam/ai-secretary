@@ -53,9 +53,10 @@ def update_transcription_status(
 
 
 @with_sqlite_connection
-def get_user_transcriptions(
+def get_user_transcriptions_with_given_status(
         db_connection: sqlite3.Connection,
-        chat_id: int
+        user_id: int,
+        transcription_status: str
 ) -> List[tuple]:
     cursor: sqlite3.Cursor = db_connection.cursor()
 
@@ -63,15 +64,19 @@ def get_user_transcriptions(
         '''
         SELECT title 
         FROM transcriptions 
-        WHERE chat_id = ?
+        WHERE chat_id = ? AND status = ?
         ''',
-        (chat_id,)
+        (user_id, transcription_status)
     )
 
-    user_transcriptions = cursor.fetchall()
-    logging.debug(f'User with chat_id {chat_id} fetched {len(user_transcriptions)} transcriptions')
+    user_transcriptions_with_given_status = cursor.fetchall()
+    logging.debug(
+        f'User with id {user_id} '
+        f'fetched {len(user_transcriptions_with_given_status)} '
+        f'transcriptions with status {transcription_status}'
+    )
 
-    return user_transcriptions
+    return user_transcriptions_with_given_status
 
 
 @with_sqlite_connection
@@ -99,7 +104,7 @@ def update_transcription_api_task_id(
 def get_transcription_details_by_status(
         db_connection: sqlite3.Connection,
         transcription_status: str,
-        fields_to_get: List[str]
+        details_to_get: List[str]
 ) -> Dict[str, Any]:
     valid_fields = [
         'id',
@@ -109,9 +114,10 @@ def get_transcription_details_by_status(
         'status',
         'transcription_api_task_id'
     ]
+
     valid_fields_to_get = [
         field
-        for field in fields_to_get
+        for field in details_to_get
         if field in valid_fields
     ]
 

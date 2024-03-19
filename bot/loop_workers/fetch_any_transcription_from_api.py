@@ -1,17 +1,18 @@
-from transcription import Transcriptor
+import logging
+
 from database import (
     get_transcription_details_by_status,
     update_transcription_status,
     add_transcription_text_to_db
 )
-import logging
+from transcription import Transcriptor
 
 
 async def fetch_any_transcription_from_api():
     try:
         transcription_id_and_api_task_id = get_transcription_details_by_status(
             transcription_status="Uploaded to transcription API, waiting for transcription",
-            fields_to_get=["id", "transcription_api_task_id"]
+            details_to_get=["id", "transcription_api_task_id"]
         )
 
         if transcription_id_and_api_task_id:
@@ -35,7 +36,7 @@ async def fetch_any_transcription_from_api():
 
             except Exception as e:
                 logging.error(f"Error processing transcription result for file {transcription_id}: {e}")
-                update_transcription_status(transcription_id, "Transcription API internal error")
+                update_transcription_status(transcription_id, "Transcription loop error")
 
     except Exception as e:
         logging.error(f"Error in fetch_any_transcription_from_api: {e}")

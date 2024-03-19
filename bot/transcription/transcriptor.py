@@ -1,8 +1,8 @@
-import asyncio
+from functools import wraps
 from typing import Dict, Any, Callable
+
 from aiohttp import ClientSession, FormData
 from pydantic_settings import BaseSettings
-from functools import wraps
 
 
 class TranscriptorSettings(BaseSettings):
@@ -16,6 +16,8 @@ transcriptor_settings = TranscriptorSettings()
 
 
 def with_transcriptor_settings(transcriptor_func: Callable) -> Callable:
+    global transcriptor_settings
+
     @wraps(transcriptor_func)
     def call_with_settings(*args, **kwargs):
         transcriptor_func_result: Any = transcriptor_func(transcriptor_settings, *args, **kwargs)
@@ -100,8 +102,8 @@ class Transcriptor(object):
                 if response.status == 200:
                     response_json = await response.json()
                     transcription_result_json = response_json['result']
-                    transcription_result = get_transcription_text_from_json(transcription_result_json)
-                    return transcription_result
+                    transcription_result_text = get_transcription_text_from_json(transcription_result_json)
+                    return transcription_result_text
                 else:
                     error_text = await response.text()
                     raise Exception(f"Failed to get transcription result: {response.status} {error_text}")

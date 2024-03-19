@@ -3,7 +3,6 @@ from functools import wraps
 from typing import Any, Callable
 
 from pydantic_settings import BaseSettings
-import logging
 
 
 class AISecretarySQLiteDBSettings(BaseSettings):
@@ -17,9 +16,12 @@ db_settings = AISecretarySQLiteDBSettings()
 
 
 def with_sqlite_connection(sqlite_func: Callable) -> Callable:
+    global db_settings
+
     @wraps(sqlite_func)
     def call_with_connection(*args, **kwargs):
         connection: sqlite3.Connection = sqlite3.connect(db_settings.sqlite_db_path)
+
         try:
             sqlite_func_result: Any = sqlite_func(connection, *args, **kwargs)
         finally:

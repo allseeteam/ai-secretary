@@ -1,12 +1,13 @@
-from pydantic_settings import BaseSettings
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
-import logging
-from database import init_db
-from threading import Thread
 import asyncio
+import logging
 import signal
+from threading import Thread
 from typing import Any
 
+from pydantic_settings import BaseSettings
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+
+from database import init_db
 from handlers import handle_start, handle_callback_query, handle_audio, handle_text
 from loop_workers import upload_any_files_to_transcription_api, fetch_any_transcription_from_api
 
@@ -58,8 +59,8 @@ def fetch_transcriptions_from_api_loop():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger().setLevel(logging.INFO)
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)

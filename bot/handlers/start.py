@@ -15,6 +15,6 @@ async def handle_start(
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text="Привет! Чем я могу помочь?",
+        text="Привет! Я — ваш AI-секретарь. Чем могу помочь?",
         reply_markup=create_main_menu_markup()
     )

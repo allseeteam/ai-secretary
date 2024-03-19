@@ -1,54 +1,37 @@
 from typing import Dict, Callable, List
 
+from markups import create_done_transcriptions_menu_markup, create_main_menu_markup, create_transcription_menu_markup
 from telegram import Update, CallbackQuery
 from telegram.ext import ContextTypes
-from markups import create_transcriptions_list_markup, create_main_menu_markup, create_transcription_menu_markup
 
 
-async def handle_main_menu_callback(
+async def handle_change_menu_main_callback(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    chat_id: int = update.effective_chat.id
-
     callback_query: CallbackQuery = update.callback_query
     await callback_query.answer()
 
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text="Привет! Чем я могу помочь?",
+    await callback_query.edit_message_text(
+        text="Чем я могу помочь?",
         reply_markup=create_main_menu_markup()
     )
 
 
-async def handle_show_transcriptions_callback(
+async def handle_change_menu_done_transcriptions_callback(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    chat_id: int = update.effective_chat.id
-
     callback_query: CallbackQuery = update.callback_query
     await callback_query.answer()
 
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text="Ваш список транскрипции.",
-        reply_markup=create_transcriptions_list_markup(update, context)
+    await callback_query.edit_message_text(
+        text="Список ваших транскрипций:",
+        reply_markup=create_done_transcriptions_menu_markup(update, context)
     )
 
 
-async def handle_add_transcription_callback(
-        update: Update,
-        context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    callback_query: CallbackQuery = update.callback_query
-    await callback_query.answer()
-
-    context.user_data['awaiting_transcription_title'] = True
-    await callback_query.edit_message_text(text="Пожалуйста, введите название транскрипции.")
-
-
-async def handle_transcription_menu_callback(
+async def handle_scenario_add_transcription_start_callback(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -57,18 +40,31 @@ async def handle_transcription_menu_callback(
     callback_query: CallbackQuery = update.callback_query
     await callback_query.answer()
 
+    context.user_data['awaiting_new_transcription_title'] = True
     await context.bot.send_message(
         chat_id=chat_id,
-        text="Меню для транскрипции.",
+        text="Давайте добавим вашу новую транскрипцию. Для начала введите её название:",
+    )
+
+
+async def handle_change_menu_transcription_callback(
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    callback_query: CallbackQuery = update.callback_query
+    await callback_query.answer()
+
+    await callback_query.edit_message_text(
+        text="Чем конкретно помочь с данной транскрипцией?",
         reply_markup=create_transcription_menu_markup(update, context)
     )
 
 
 callback_handlers_mapping: Dict[str, Callable] = {
-    'main_menu': handle_main_menu_callback,
-    'show_transcriptions': handle_show_transcriptions_callback,
-    'add_transcription': handle_add_transcription_callback,
-    'transcription_menu': handle_transcription_menu_callback
+    'change_menu_main': handle_change_menu_main_callback,
+    'change_menu_done_transcriptions': handle_change_menu_done_transcriptions_callback,
+    'scenario_add_transcription_start': handle_scenario_add_transcription_start_callback,
+    'change_menu_transcription': handle_change_menu_transcription_callback
 }
 
 
@@ -86,4 +82,4 @@ async def handle_callback_query(
         await callback_handler(update, context)
     else:
         await callback_query.answer()
-        await callback_query.edit_message_text(text="Неизвестная команда.")
+        await callback_query.edit_message_text(text="Пу-Пу")
