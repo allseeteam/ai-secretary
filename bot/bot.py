@@ -5,11 +5,11 @@ from threading import Thread
 from typing import Any
 
 from pydantic_settings import BaseSettings
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 
+from background_workers import upload_any_files_to_transcription_api, fetch_any_transcription_from_api
 from database import init_db
-from handlers import handle_start, handle_callback_query, handle_audio, handle_text
-from loop_workers import upload_any_files_to_transcription_api, fetch_any_transcription_from_api
+from handlers import handle_start, handle_change_menu_callback_query, handle_add_new_transcription
 
 
 class AISecretaryTGBotSettings(BaseSettings):
@@ -26,6 +26,7 @@ settings = AISecretaryTGBotSettings()
 run_background_loops = True
 
 
+# noinspection PyUnusedLocal
 def signal_handler(signum: int, frame: Any) -> None:
     global run_background_loops
     run_background_loops = False
@@ -40,9 +41,8 @@ def setup_and_start_bot() -> None:
                    .connect_timeout(settings.telegram_bot_connect_timeout)
                    .build())
     application.add_handler(CommandHandler("start", handle_start))
-    application.add_handler(CallbackQueryHandler(handle_callback_query))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-    application.add_handler(MessageHandler(filters.AUDIO, handle_audio))
+    application.add_handler(handle_add_new_transcription)
+    application.add_handler(CallbackQueryHandler(handle_change_menu_callback_query))
     application.run_polling()
 
 

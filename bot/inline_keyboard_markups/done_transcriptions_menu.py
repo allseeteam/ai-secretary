@@ -1,8 +1,14 @@
 from typing import List
 
-from database import get_user_transcriptions_with_given_status
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, CallbackQuery
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+    CallbackQuery
+)
 from telegram.ext import ContextTypes
+
+from database import get_user_transcriptions_with_given_status
 
 
 def create_done_transcriptions_menu_markup(

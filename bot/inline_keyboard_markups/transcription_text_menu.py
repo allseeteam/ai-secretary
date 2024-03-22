@@ -1,4 +1,9 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, CallbackQuery
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+    CallbackQuery
+)
 from telegram.ext import ContextTypes
 
 

@@ -1,6 +1,9 @@
 import sqlite3
 from functools import wraps
-from typing import Any, Callable
+from typing import (
+    Any,
+    Callable
+)
 
 from pydantic_settings import BaseSettings
 
@@ -23,7 +26,11 @@ def with_sqlite_connection(sqlite_func: Callable) -> Callable:
         connection: sqlite3.Connection = sqlite3.connect(db_settings.sqlite_db_path)
 
         try:
-            sqlite_func_result: Any = sqlite_func(connection, *args, **kwargs)
+            sqlite_func_result: Any = sqlite_func(
+                connection,
+                *args,
+                **kwargs
+            )
         finally:
             connection.close()
         return sqlite_func_result

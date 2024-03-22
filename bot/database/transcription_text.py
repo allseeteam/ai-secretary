@@ -24,7 +24,7 @@ def add_transcription_text_to_db(
     transcription_text_id = cursor.lastrowid
 
     db_connection.commit()
-    logging.debug(f'Transcription text with id {transcription_text_id} for transcription {transcription_id} added to db')
+    logging.info(f"Transcription text with id {transcription_text_id} for transcription {transcription_id} added to db")
 
     return transcription_text_id
 

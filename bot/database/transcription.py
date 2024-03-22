@@ -1,6 +1,10 @@
 import logging
 import sqlite3
-from typing import List, Any, Dict
+from typing import (
+    List,
+    Any,
+    Dict
+)
 
 from .db_connection import with_sqlite_connection
 
@@ -27,7 +31,7 @@ def add_transcription_to_db(
     transcription_id = cursor.lastrowid
 
     db_connection.commit()
-    logging.debug(f'Transcription {title} added to db with id {transcription_id}')
+    logging.info(f"Transcription {title} added to db with id {transcription_id}")
 
     return transcription_id
 
@@ -49,7 +53,7 @@ def update_transcription_status(
         (new_status, transcription_id))
 
     db_connection.commit()
-    logging.debug(f'Transcription {transcription_id} status updated to {new_status}')
+    logging.debug(f"Transcription {transcription_id} status updated to {new_status}")
 
 
 @with_sqlite_connection
@@ -70,10 +74,10 @@ def get_user_transcriptions_with_given_status(
     )
 
     user_transcriptions_with_given_status = cursor.fetchall()
-    logging.debug(
-        f'User with id {user_id} '
-        f'fetched {len(user_transcriptions_with_given_status)} '
-        f'transcriptions with status {transcription_status}'
+    logging.info(
+        f"User with id {user_id} "
+        f"fetched {len(user_transcriptions_with_given_status)} "
+        f"transcriptions with status {transcription_status}"
     )
 
     return user_transcriptions_with_given_status

@@ -1,11 +1,9 @@
-from .callback_query import handle_callback_query
-from .file_upload import handle_audio
+from .change_menu import handle_change_menu_callback_query
+from .new_transcription import handle_add_new_transcription
 from .start import handle_start
-from .text import handle_text
 
 __all__ = [
     'handle_start',
-    'handle_callback_query',
-    'handle_text',
-    'handle_audio'
+    'handle_change_menu_callback_query',
+    'handle_add_new_transcription'
 ]

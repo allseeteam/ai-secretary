@@ -1,7 +1,8 @@
-from database import add_user_to_db
-from markups import create_main_menu_markup
 from telegram import Update
 from telegram.ext import ContextTypes
+
+from database import add_user_to_db
+from inline_keyboard_markups import create_main_menu_markup
 
 
 async def handle_start(
