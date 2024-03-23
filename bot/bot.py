@@ -5,11 +5,23 @@ from threading import Thread
 from typing import Any
 
 from pydantic_settings import BaseSettings
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler
+)
 
-from background_workers import upload_any_files_to_transcription_api, fetch_any_transcription_from_api
+from background_workers import (
+    upload_any_files_to_transcription_api,
+    fetch_any_transcription_from_api
+)
 from database import init_db
-from handlers import handle_start, handle_change_menu_callback_query, handle_add_new_transcription
+from handlers import (
+    handle_start,
+    handle_change_menu_callback_query,
+    handle_add_new_transcription,
+    handle_discuss_transcription
+)
 
 
 class AISecretaryTGBotSettings(BaseSettings):
@@ -42,6 +54,7 @@ def setup_and_start_bot() -> None:
                    .build())
     application.add_handler(CommandHandler("start", handle_start))
     application.add_handler(handle_add_new_transcription)
+    application.add_handler(handle_discuss_transcription)
     application.add_handler(CallbackQueryHandler(handle_change_menu_callback_query))
     application.run_polling()
 

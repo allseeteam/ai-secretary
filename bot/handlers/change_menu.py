@@ -106,3 +106,5 @@ async def handle_change_menu_callback_query(
 
     if callback_handler:
         await callback_handler(update, context)
+    else:
+        await callback_query.answer()

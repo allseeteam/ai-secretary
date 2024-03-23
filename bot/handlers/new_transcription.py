@@ -103,9 +103,12 @@ async def cancel_new_transcription(
     callback_query: CallbackQuery = update.callback_query
     await callback_query.answer()
 
+    chat_id: int = update.effective_chat.id
+
     context.user_data.pop('new_transcription_title', None)
 
-    await callback_query.edit_message_text(
+    await context.bot.send_message(
+        chat_id=chat_id,
         text=(
             "Добавление транскрипции отменено. "
             "Чем я могу ещё помочь?"
