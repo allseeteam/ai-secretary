@@ -7,5 +7,6 @@ env/.env.bot
 env/.env.api
 env/.env.sqlite
 env/.env.transcriptor
+env/.env.openai
 setup.local-tg-api.sh
 bot/database/ai-secretary.db
