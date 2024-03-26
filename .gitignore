@@ -3,6 +3,7 @@ venv
 data
 telegram-bot-api
 
+env/.env
 env/.env.bot
 env/.env.api
 env/.env.sqlite
