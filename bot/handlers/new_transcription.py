@@ -1,3 +1,5 @@
+import os
+
 from moviepy.editor import VideoFileClip
 
 from telegram import (
@@ -52,7 +54,7 @@ async def handle_new_transcription_title(
         .reply_text(
             text=(
                 f"Отлично! "
-                "Теперь отправьте аудио и видеозапись для транскрибации:"
+                "Теперь отправьте аудио или видеозапись для транскрибации:"
             ),
             reply_markup=create_cancel_adding_new_transcription_markup()
         )
@@ -98,6 +100,8 @@ async def handle_new_transcription_audio(
 
 
 def extract_audio(video_path: str, audio_path: str) -> None:
+    os.makedirs(os.path.dirname(audio_path), exist_ok=True)
+
     with VideoFileClip(video_path) as video:
         video.audio.write_audiofile(audio_path, )
 
