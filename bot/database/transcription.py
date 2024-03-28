@@ -37,6 +37,28 @@ def add_transcription_to_db(
 
 
 @with_sqlite_connection
+def get_transcription_by_id(
+        db_connection: sqlite3.Connection,
+        transcription_id: int
+) -> Dict[str, Any]:
+    cursor: sqlite3.Cursor = db_connection.cursor()
+
+    cursor.execute(
+        '''
+        SELECT id, chat_id, title, status
+        FROM transcriptions
+        WHERE id = ?
+        ''',
+        (transcription_id,)
+    )
+
+    transcription = cursor.fetchone()
+    logging.info(f"Transcription with id {transcription_id} retrieved from db")
+
+    return transcription
+
+
+@with_sqlite_connection
 def update_transcription_status(
         db_connection: sqlite3.Connection,
         transcription_id: int,

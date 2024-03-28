@@ -4,13 +4,15 @@ from .transcription import (
     update_transcription_status,
     get_user_transcriptions_with_given_status,
     update_transcription_api_task_id,
-    get_transcription_details_by_status
+    get_transcription_details_by_status,
+    get_transcription_by_id
 )
 from .transcription_text import (
     add_transcription_text_to_db,
     get_transcription_text_by_id
 )
 from .user import add_user_to_db
+
 
 __all__ = [
     'init_db',
@@ -21,5 +23,6 @@ __all__ = [
     'add_transcription_text_to_db',
     'update_transcription_api_task_id',
     'get_transcription_details_by_status',
-    'get_transcription_text_by_id'
+    'get_transcription_text_by_id',
+    'get_transcription_by_id'
 ]
