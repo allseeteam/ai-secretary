@@ -25,14 +25,10 @@ RUN git clone --recursive https://github.com/tdlib/telegram-bot-api.git && \
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-ARG TELEGRAM_API_ID
-ARG TELEGRAM_API_HASH
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-ENV TELEGRAM_API_ID=${TELEGRAM_API_ID}
-ENV TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
 ENV HTTP_PROXY=${HTTP_PROXY}
 ENV HTTPS_PROXY=${HTTPS_PROXY}
 ENV NO_PROXY=${NO_PROXY}
