@@ -16,7 +16,8 @@ from telegram.ext import (
 )
 
 from database import add_transcription_to_db
-from inline_keyboard_markups import create_main_menu_markup, create_cancel_adding_new_transcription_markup
+from inline_keyboard_markups import create_main_menu_markup
+from reply_keyboard_markups import create_cancel_adding_new_transcription_markup
 
 AWAITING_NEW_TRANSCRIPTION_TITLE = 1
 AWAITING_NEW_TRANSCRIPTION_AUDIO_OR_VIDEO = 2
@@ -27,10 +28,13 @@ async def request_new_transcription_title(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
+    chat_id: int = update.effective_chat.id
+
     callback_query: CallbackQuery = update.callback_query
     await callback_query.answer()
 
-    await callback_query.edit_message_text(
+    await context.bot.send_message(
+        chat_id=chat_id,
         text=(
             "Давайте добавим вашу новую транскрипцию. "
             "Для начала введите её название:"
@@ -155,15 +159,11 @@ async def cancel_new_transcription(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
-    callback_query: CallbackQuery = update.callback_query
-    await callback_query.answer()
-
     chat_id: int = update.effective_chat.id
 
     context.user_data.pop('new_transcription_title', None)
 
-    await context.bot.send_message(
-        chat_id=chat_id,
+    await update.message.reply_text(
         text=(
             "Добавление транскрипции отменено. "
             "Чем я могу ещё помочь?"
@@ -185,7 +185,7 @@ handle_add_new_transcription = ConversationHandler(
     states={
         AWAITING_NEW_TRANSCRIPTION_TITLE: [
             MessageHandler(
-                filters.TEXT & ~filters.COMMAND,
+                filters.TEXT & ~filters.COMMAND & ~filters.Regex('^Отмена$'),
                 handle_new_transcription_title
             )
         ],
@@ -201,9 +201,6 @@ handle_add_new_transcription = ConversationHandler(
         ]
     },
     fallbacks=[
-        CallbackQueryHandler(
-            cancel_new_transcription,
-            pattern='^cancel_adding_new_transcription$'
-        )
+        MessageHandler(filters.Regex('^Отмена$'), cancel_new_transcription)
     ]
 )

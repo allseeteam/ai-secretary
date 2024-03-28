@@ -14,10 +14,8 @@ from telegram.ext import (
     ContextTypes,
     CallbackQueryHandler
 )
-from inline_keyboard_markups import (
-    create_transcription_menu_markup_without_callback,
-    create_stop_transcription_discussion_markup
-)
+from inline_keyboard_markups import create_transcription_menu_markup_without_callback
+from reply_keyboard_markups import create_stop_transcription_discussion_markup
 from database import get_transcription_text_by_id
 
 
@@ -42,6 +40,8 @@ async def start_transcrition_discussion(
 ) -> int:
     global openai_client
 
+    chat_id: int = update.effective_chat.id
+
     callback_query: CallbackQuery = update.callback_query
     transcription_id: str = callback_query.data.split(":")[-1]
 
@@ -60,7 +60,8 @@ async def start_transcrition_discussion(
 
     await callback_query.answer()
 
-    await callback_query.edit_message_text(
+    await context.bot.send_message(
+        chat_id=chat_id,
         text=(
             "Давайте обсудим вашу транскрипцию. "
             "Вы можете задавать любые вопросы."
@@ -121,11 +122,8 @@ async def stop_transcription_discussion(
 ) -> int:
     global openai_client
 
-    callback_query: CallbackQuery = update.callback_query
-    await callback_query.answer()
-
-    transcription_id: str = callback_query.data.split(":")[-1]
     chat_id: int = update.effective_chat.id
+    transcription_id: str = str(context.user_data['transcription_id'])
 
     context.user_data.pop('message_count', None)
     context.user_data.pop('transcription_id', None)
@@ -157,15 +155,12 @@ handle_discuss_transcription = ConversationHandler(
     states={
         DISCUSSING_TRANSCRIPTION: [
             MessageHandler(
-                filters.TEXT & ~filters.COMMAND,
+                filters.TEXT & ~filters.COMMAND & ~filters.Regex('^Закончить обсуждение$'),
                 handle_transcription_discussion_user_message
             )
         ],
     },
     fallbacks=[
-        CallbackQueryHandler(
-            stop_transcription_discussion,
-            pattern='^stop_transcription_discussion$'
-        )
+        MessageHandler(filters.Regex('^Закончить обсуждение$'), stop_transcription_discussion)
     ]
 )
