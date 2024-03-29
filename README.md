@@ -4,6 +4,15 @@
 <br>
 
 
+### Что умеет данный ассистент?
+- Взаимодействовать с пользователем в телеграмме
+- Сохранять и производить анализ аудиофайлов и видеозаписей
+- Обсуживать с пользователем загруженные аудиофайлы и видеозаписи
+
+
+<br>
+
+
 ### Настройка для локальной разработки
 
 #### Настройка Venv
@@ -44,6 +53,17 @@ cd telegram-bot-api/build
 ```
 
 #### Запуск бота
+Необходимо задать в /env или в ENV следующие переменные:
+- TELEGRAM_BOT_TOKEN — [Токен бота Telegram](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)
+- TELEGRAM_BOT_API_BASE_URL — Базовый адрес сервера вашего бота (для локального сервера: http://localhost:8081/bot)
+- OPENAI_API_KEY — [Токен OpenAI](https://platform.openai.com/docs/quickstart?context=python#:~:text=Set%20up%20your%20API%20key%20for%20a%20single%20project)
+- SQLITE_DB_PATH — Путь по которому мы хотим хранить нашу SQLite базу данных 
+(стандартный адрес: bot/database/ai-secretary.db)
+- TRANSCRIPTION_API_BASE_URL — Базовый адрес сервера для транскрибации (развернуть сервер можно по инструкциям из [репозитория](https://github.com/allseeteam/whisperx-fastapi), для локального сервера адрес (для данного кейса обязательно при запуске образа указываем --network host): http://127.0.0.1:8000)
+
+```bash
+python3 bot/bot.py
+```
 
 
 <br>
@@ -56,28 +76,24 @@ sudo iptables -P INPUT ACCEPT
 ```
 
 #### Сборка контейнера
-- Build Args
-1. HTTP_PROXY — Адрес прокси-сервера для обхода географических ограничений (пример настройки прокси-сервера на Ubuntu: PROXY_SETUP.md)
-2. HTTPS_PROXY — См. HTTP_PROXY
-3. NO_PROXY — Адреса, запросы на которые мы будем обрабатывать без прокси
-- Команда для сборки
+При вызове docker build необходимо указать следующие переменные:
+- HTTP_PROXY — Адрес прокси-сервера для обхода географических ограничений (пример настройки прокси-сервера на Ubuntu: PROXY_SETUP.md)
+- HTTPS_PROXY — См. HTTP_PROXY
+- NO_PROXY — Адреса, запросы на которые мы будем обрабатывать без прокси
 ```bash
 docker build --build-arg HTTP_PROXY=${HTTP_PROXY} --build-arg HTTPS_PROXY=${HTTPS_PROXY} --build-arg NO_PROXY=${NO_PROXY} -t ai-secretary .
 ```
 
-#### ENV
+#### Запуск контейнера
 Для корректной работы требуется передавать в docker run следующие переменные окружения:
-1. TELEGRAM_API_ID — [ID приложения Telegram](https://tlgrm.ru/docs/api/obtaining_api_id)
-2. TELEGRAM_API_HASH — [Hash приложения Telegram](https://tlgrm.ru/docs/api/obtaining_api_id)
-3. TELEGRAM_BOT_TOKEN — [Токен бота Telegram](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)
-4. TELEGRAM_BOT_API_BASE_URL — Базовый адрес сервера вашего бота (для локального сервера: http://localhost:8081/bot)
-5. OPENAI_API_KEY — [Токен OpenAI](https://platform.openai.com/docs/quickstart?context=python#:~:text=Set%20up%20your%20API%20key%20for%20a%20single%20project)
-6. SQLITE_DB_PATH — Путь по которому мы хотим хранить нашу SQLite базу данных 
+- TELEGRAM_API_ID — [ID приложения Telegram](https://tlgrm.ru/docs/api/obtaining_api_id)
+- TELEGRAM_API_HASH — [Hash приложения Telegram](https://tlgrm.ru/docs/api/obtaining_api_id)
+- TELEGRAM_BOT_TOKEN — [Токен бота Telegram](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)
+- TELEGRAM_BOT_API_BASE_URL — Базовый адрес сервера вашего бота (для локального сервера: http://localhost:8081/bot)
+- OPENAI_API_KEY — [Токен OpenAI](https://platform.openai.com/docs/quickstart?context=python#:~:text=Set%20up%20your%20API%20key%20for%20a%20single%20project)
+- SQLITE_DB_PATH — Путь по которому мы хотим хранить нашу SQLite базу данных 
 (стандартный адрес: bot/database/ai-secretary.db)
-7. TRANSCRIPTION_API_BASE_URL — Базовый адрес сервера для транскрибации (развернуть сервер можно по инструкциям из [репозитория](https://github.com/allseeteam/whisperx-fastapi), для локального сервера адрес (для данного кейса обязательно при запуске образа указываем --network host): http://127.0.0.1:8000)
-
-
-
+- TRANSCRIPTION_API_BASE_URL — Базовый адрес сервера для транскрибации (развернуть сервер можно по инструкциям из [репозитория](https://github.com/allseeteam/whisperx-fastapi), для локального сервера адрес (для данного кейса обязательно при запуске образа указываем --network host): http://127.0.0.1:8000)                                                                                                                                                   
 ```bash
 docker run -d --network host --env-file env/.env --name ai-secretary-container ai-secretary
 ```
