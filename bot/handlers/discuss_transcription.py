@@ -51,11 +51,11 @@ async def start_transcrition_discussion(
     try:
         transcripton_text: str = get_transcription_text_by_id(transcription_id)
 
-        file_response = openai_client.File.create(
-            file=transcription_text.encode(),
+        file_response = openai_client.files.create(
+            file=transcripton_text.encode(),
             purpose='assistants'
         )
-        file_id = file_response["id"]
+        file_id = file_response.id
         context.user_data['transcription_file_id'] = file_id
 
         context.user_data['transcripton_assistant'] = openai_client.beta.assistants.create(
@@ -64,6 +64,7 @@ async def start_transcrition_discussion(
                 "На основе текстовой транскрипции переговоров, сохраненной в прикрепленном файле, "
                 "отвечай на все мои вопросы."
             ),
+            tools=[{"type": "retrieval"}],
             file_ids=[file_id],
             model="gpt-4-turbo-preview",
         )
@@ -167,7 +168,7 @@ async def stop_transcription_discussion(
 
     if context.user_data.get('transcription_file_id'):
         try:
-            openai_client.File.delete(file_id=context.user_data['transcription_file_id'])
+            openai_client.files.delete(file_id=context.user_data['transcription_file_id'])
         except Exception as e:
             logging.error(f"Error deleting transcription file: {e}. Maybe it never existed.")
 
