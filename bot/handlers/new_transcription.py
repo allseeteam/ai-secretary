@@ -123,14 +123,21 @@ async def handle_new_transcription_video(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
+    import time
+    start_time = time.time()
+
+    logging.info(f"{time.time() - start_time} - 1. video transcription started")
     new_transription_video_file_id: str = update.message.video.file_id
     current_chat_id: int = update.effective_chat.id
+    logging.info(f"{time.time() - start_time} - 2. Got new_transription_video_file_id: {new_transription_video_file_id} in chat {current_chat_id}")
 
     try:
         new_transcription_title: str = context.user_data.get('new_transcription_title', 'Без названия')
 
+        logging.info(f"{time.time() - start_time} - 3. Awaiting new_transcription_video_file")
         new_transcription_video_file: File = await context.bot.get_file(new_transription_video_file_id)
         new_transcription_video_file_path: str = new_transcription_video_file.file_path
+        logging.info(f"{time.time() - start_time} - 4. Got new_transcription_video_file with path {new_transcription_video_file_path}")
 
         new_transcription_audio_file_path = "/".join(
             new_transcription_video_file_path.split("/")[:-2]
@@ -138,15 +145,20 @@ async def handle_new_transcription_video(
             ["music", f"{new_transription_video_file_id}.mp3"]
         )
 
+        logging.info(f"{time.time() - start_time} - 5. Started audio extraction")
         extract_audio(new_transcription_video_file_path, new_transcription_audio_file_path)
+        logging.info(f"{time.time() - start_time} - 6. Audio extraction done")
 
+        logging.info(f"{time.time() - start_time} - 7. Adding transcription to db")
         add_transcription_to_db(
             chat_id=current_chat_id,
             title=new_transcription_title,
             audio_file_path=new_transcription_audio_file_path,
             status="Awaiting upload to transcription API"
         )
+        logging.info(f"{time.time() - start_time} - 8. Done adding transcription to db")
 
+        logging.info(f"{time.time() - start_time} - 9. Sending message")
         await update.message.reply_text(
                 text=(
                     f"Ваша транскрипция '{new_transcription_title}' добавлена в очередь обработки. "
@@ -155,6 +167,7 @@ async def handle_new_transcription_video(
                 ),
                 reply_markup=create_main_menu_markup()
             )
+        logging.info(f"{time.time() - start_time} - 10. Message sent")
 
         context.user_data.pop('new_transcription_title', None)
 
@@ -162,6 +175,7 @@ async def handle_new_transcription_video(
 
     except Exception as e:
         logging.error(f"Error adding new transcription: {e}")
+        logging.info(f"time: {time.time() - start_time}")
 
         await update.message.reply_text(
             text=(
