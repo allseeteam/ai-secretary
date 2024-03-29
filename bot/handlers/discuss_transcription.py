@@ -48,6 +48,11 @@ async def start_transcrition_discussion(
 
     await callback_query.answer()
 
+    sticker_message = await context.bot.send_sticker(
+        chat_id=chat_id,
+        sticker='CAACAgIAAxkBAAJMS2YHPrVKVmiyNhVR3J5vQE2Qpu-kAAIjAAMoD2oUJ1El54wgpAY0BA'
+    )
+
     try:
         transcripton_text: str = get_transcription_text_by_id(transcription_id)
 
@@ -71,6 +76,8 @@ async def start_transcrition_discussion(
 
         context.user_data['transcription_thread'] = openai_client.beta.threads.create()
 
+        await context.bot.delete_message(chat_id=chat_id, message_id=sticker_message.message_id)
+
         await context.bot.send_message(
             chat_id=chat_id,
             text=(
@@ -87,6 +94,8 @@ async def start_transcrition_discussion(
     except Exception as e:
         logging.error(f"Error starting transcription discussion: {e}")
 
+        await context.bot.delete_message(chat_id=chat_id, message_id=sticker_message.message_id)
+
         await stop_transcription_discussion(update, context, is_error=True)
 
 
@@ -95,6 +104,10 @@ async def handle_transcription_discussion_user_message(
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
     global openai_client
+
+    sticker_message = await update.message.reply_sticker(
+        sticker='CAACAgIAAxkBAAJMS2YHPrVKVmiyNhVR3J5vQE2Qpu-kAAIjAAMoD2oUJ1El54wgpAY0BA'
+    )
 
     try:
         message_text: str = update.message.text
@@ -122,6 +135,8 @@ async def handle_transcription_discussion_user_message(
             .dict()['data'][0]['content'][0]['text']['value']
         )
 
+        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=sticker_message.message_id)
+
         await (
             update
             .message
@@ -136,6 +151,8 @@ async def handle_transcription_discussion_user_message(
     except Exception as e:
         logging.error(f"Error while handling transcription discussion message: {e}")
 
+        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=sticker_message.message_id)
+
         await stop_transcription_discussion(update, context, is_error=True)
 
 
@@ -149,6 +166,10 @@ async def stop_transcription_discussion(
 
     chat_id: int = update.effective_chat.id
     transcription_id: str = str(context.user_data['transcription_id'])
+
+    sticker_message = await update.message.reply_sticker(
+        sticker='CAACAgIAAxkBAAJMS2YHPrVKVmiyNhVR3J5vQE2Qpu-kAAIjAAMoD2oUJ1El54wgpAY0BA'
+    )
 
     if context.user_data.get('transcripton_assistant'):
         try:
@@ -176,6 +197,8 @@ async def stop_transcription_discussion(
     context.user_data.pop('transcripton_assistant', None)
     context.user_data.pop('transcription_file_id', None)
     context.user_data.pop('transcription_thread', None)
+
+    await context.bot.delete_message(chat_id=chat_id, message_id=sticker_message.message_id)
 
     await context.bot.send_message(
         chat_id=chat_id,
