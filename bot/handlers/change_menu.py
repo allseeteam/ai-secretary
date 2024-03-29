@@ -1,3 +1,4 @@
+import logging
 from typing import (
     Dict,
     Callable,
@@ -67,7 +68,7 @@ async def handle_change_menu_transcription_text_callback(
     callback_query: CallbackQuery = update.callback_query
     transcription_id: str = callback_query.data.split(":")[-1]
 
-    transcription_text = get_transcription_text_by_id(transcription_id)
+    transcription_text: str = get_transcription_text_by_id(transcription_id)
 
     await callback_query.answer()
     await callback_query.delete_message()
@@ -107,4 +108,5 @@ async def handle_change_menu_callback_query(
     if callback_handler:
         await callback_handler(update, context)
     else:
+        logging.error(f"Unknown callback key: {callback_key}")
         await callback_query.answer()

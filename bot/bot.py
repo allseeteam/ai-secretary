@@ -13,7 +13,9 @@ from telegram.ext import (
 
 from background_workers import (
     upload_any_files_to_transcription_api,
-    fetch_any_transcription_from_api
+    fetch_any_transcription_from_api,
+    extract_any_transcription_file_path_from_bot_server,
+    extract_audio_from_any_transcription_video
 )
 from database import init_db
 from handlers import (
@@ -44,19 +46,23 @@ def signal_handler(signum: int, frame: Any) -> None:
     run_background_loops = False
 
 
-def setup_and_start_bot() -> None:
-    application = (Application
-                   .builder()
-                   .token(settings.telegram_bot_token)
-                   .base_url(settings.telegram_bot_api_base_url)
-                   .read_timeout(settings.telegram_bot_read_timeout)
-                   .connect_timeout(settings.telegram_bot_connect_timeout)
-                   .build())
+def setup_application() -> Application:
+    application = (
+        Application
+        .builder()
+        .token(settings.telegram_bot_token)
+        .base_url(settings.telegram_bot_api_base_url)
+        .read_timeout(settings.telegram_bot_read_timeout)
+        .connect_timeout(settings.telegram_bot_connect_timeout)
+        .build()
+    )
+
     application.add_handler(CommandHandler("start", handle_start))
     application.add_handler(handle_add_new_transcription)
     application.add_handler(handle_discuss_transcription)
     application.add_handler(CallbackQueryHandler(handle_change_menu_callback_query))
-    application.run_polling()
+
+    return application
 
 
 def upload_files_to_transcription_api_loop():
@@ -71,7 +77,19 @@ def fetch_transcriptions_from_api_loop():
         asyncio.run(asyncio.sleep(10))
 
 
-if __name__ == '__main__':
+async def save_transcription_file_path_from_bot_server_to_db_loop(application: Application):
+    while run_background_loops:
+        await extract_any_transcription_file_path_from_bot_server(application)
+        await asyncio.sleep(10)
+
+
+def extract_audio_from_any_transcription_video_loop():
+    while run_background_loops:
+        asyncio.run(extract_audio_from_any_transcription_video())
+        asyncio.run(asyncio.sleep(10))
+
+
+def main():
     logging.basicConfig(level=logging.INFO)
     logging.getLogger().setLevel(logging.INFO)
 
@@ -81,9 +99,21 @@ if __name__ == '__main__':
     logging.info("Setting up database...")
     init_db()
 
-    logging.info("Starting background loops...")
+    logging.info("Starting background workers...")
     Thread(target=upload_files_to_transcription_api_loop, daemon=True).start()
     Thread(target=fetch_transcriptions_from_api_loop, daemon=True).start()
+    Thread(target=extract_audio_from_any_transcription_video_loop, daemon=True).start()
+
+    logging.info("Setting up application...")
+    application = setup_application()
+
+    logging.info("Starting background workers...")
+    loop = asyncio.get_event_loop()
+    loop.create_task(save_transcription_file_path_from_bot_server_to_db_loop(application))
 
     logging.info("Starting bot...")
-    setup_and_start_bot()
+    application.run_polling()
+
+
+if __name__ == '__main__':
+    main()

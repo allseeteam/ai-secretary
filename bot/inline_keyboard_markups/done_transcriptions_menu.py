@@ -1,4 +1,8 @@
-from typing import List
+from typing import (
+    List,
+    Dict,
+    Any
+)
 
 from telegram import (
     InlineKeyboardButton,
@@ -8,20 +12,26 @@ from telegram import (
 )
 from telegram.ext import ContextTypes
 
-from database import get_user_transcriptions_with_given_status
+from database import get_all_user_transcriptions_with_given_status
 
 
+# noinspection PyUnusedLocal
 def create_done_transcriptions_menu_markup(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> InlineKeyboardMarkup:
     query: CallbackQuery = update.callback_query
+    # noinspection PyUnresolvedReferences
     chat_id: int = query.message.chat_id
 
-    done_transcriptions: List[tuple] = get_user_transcriptions_with_given_status(chat_id, "Transcribed")
+    done_transcriptions: List[Dict[str, Any]] = get_all_user_transcriptions_with_given_status(
+        chat_id,
+        "Transcribed",
+        ["id", "title"]
+    )
 
     keyboard = [
-        [InlineKeyboardButton(transcription[1], callback_data=f"change_menu_transcription:{transcription[0]}")]
+        [InlineKeyboardButton(transcription['title'], callback_data=f"change_menu_transcription:{transcription['id']}")]
         for transcription in done_transcriptions
     ]
     keyboard.append([InlineKeyboardButton("« Вернуться в главное меню", callback_data="change_menu_main")])

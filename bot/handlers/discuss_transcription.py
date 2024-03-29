@@ -69,6 +69,8 @@ async def start_transcrition_discussion(
             reply_markup=create_stop_transcription_discussion_markup()
         )
 
+        logging.info(f"User with id {chat_id} started transcription discussion")
+
         return DISCUSSING_TRANSCRIPTION
 
     except Exception as e:
@@ -155,6 +157,8 @@ async def stop_transcription_discussion(
             transcription_id=transcription_id
         )
     )
+
+    logging.info(f"User with id {chat_id} stopped transcription discussion")
 
     return ConversationHandler.END
 

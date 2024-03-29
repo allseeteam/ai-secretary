@@ -1,3 +1,5 @@
+import logging
+
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -13,6 +15,7 @@ async def handle_start(
     username: str = update.effective_user.username
 
     add_user_to_db(chat_id, username)
+    logging.info(f"User {username} started the bot")
 
     await context.bot.send_message(
         chat_id=chat_id,

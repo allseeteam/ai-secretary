@@ -1,10 +1,7 @@
 import logging
-import os
 
-from moviepy.editor import VideoFileClip
 from telegram import (
     Update,
-    File,
     CallbackQuery
 )
 from telegram.ext import (
@@ -43,6 +40,8 @@ async def request_new_transcription_title(
         reply_markup=create_cancel_adding_new_transcription_markup()
     )
 
+    logging.info(f"Requesting new transcription title from {chat_id}")
+
     return AWAITING_NEW_TRANSCRIPTION_TITLE
 
 
@@ -54,140 +53,93 @@ async def handle_new_transcription_title(
     context.user_data['new_transcription_title'] = new_transcription_title
 
     await update.message.reply_text(
-            text=(
-                f"Отлично! "
-                "Теперь отправьте аудио или видеозапись для транскрибации."
-            ),
-            reply_markup=create_cancel_adding_new_transcription_markup()
-        )
+        text=(
+            f"Отлично! "
+            "Теперь отправьте аудио или видеозапись для транскрибации."
+        ),
+        reply_markup=create_cancel_adding_new_transcription_markup()
+    )
+
+    logging.info(f"Requesting new transcription audio or video from {update.effective_chat.id}")
 
     return AWAITING_NEW_TRANSCRIPTION_AUDIO_OR_VIDEO
+
+
+async def add_new_transcription_and_end_conversation(
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        file_type: str
+) -> int:
+    try:
+        if file_type == "Audio":
+            file_id: str = update.message.audio.file_id
+        elif file_type == "Video":
+            file_id: str = update.message.video.file_id
+        else:
+            raise Exception(f"Unknown file type: {file_type}")
+
+        current_chat_id: int = update.effective_chat.id
+        new_transcription_title: str = context.user_data.get('new_transcription_title', 'Без названия')
+
+        add_transcription_to_db(
+            chat_id=current_chat_id,
+            title=new_transcription_title,
+            uploaded_file_id=file_id,
+            uploaded_file_type=file_type,
+            status="Awaiting to filepath extraction"
+        )
+
+        await update.message.reply_text(
+            text=(
+                f"Ваша транскрипция '{new_transcription_title}' добавлена в очередь обработки. "
+                "Пожалуйста, подождите, пока она обрабатывается. "
+                "Чем я могу ещё помочь?"
+            ),
+            reply_markup=create_main_menu_markup()
+        )
+
+        context.user_data.pop('new_transcription_title', None)
+
+        logging.info(f"Added new transcription: {new_transcription_title} from {current_chat_id}")
+
+        return ConversationHandler.END
+
+    except Exception as e:
+        await update.message.reply_text(
+            text=(
+                "Произошла ошибка при добавлении транскрипции. "
+                "Пожалуйста, повторите попытку позже."
+            ),
+            reply_markup=create_main_menu_markup()
+        )
+
+        context.user_data.pop('new_transcription_title', None)
+
+        logging.error(f"Error adding new transcription: {e}")
+
+        return ConversationHandler.END
 
 
 async def handle_new_transcription_audio(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
-    new_transription_audio_file_id: str = update.message.audio.file_id
-    current_chat_id: int = update.effective_chat.id
-
-    try:
-        new_transcription_title: str = context.user_data.get('new_transcription_title', 'Без названия')
-
-        new_transcription_audio_file: File = await context.bot.get_file(new_transription_audio_file_id)
-        new_transcription_audio_file_path: str = new_transcription_audio_file.file_path
-
-        add_transcription_to_db(
-            chat_id=current_chat_id,
-            title=new_transcription_title,
-            audio_file_path=new_transcription_audio_file_path,
-            status="Awaiting upload to transcription API"
-        )
-
-        await update.message.reply_text(
-                text=(
-                    f"Ваша транскрипция '{new_transcription_title}' добавлена в очередь обработки. "
-                    "Чем я могу ещё помочь?"
-                ),
-                reply_markup=create_main_menu_markup()
-            )
-
-        context.user_data.pop('new_transcription_title', None)
-
-        return ConversationHandler.END
-
-    except Exception as e:
-        logging.error(f"Error adding new transcription: {e}")
-
-        await update.message.reply_text(
-            text=(
-                "Произошла ошибка при добавлении транскрипции. "
-                "Пожалуйста, повторите попытку позже."
-            ),
-            reply_markup=create_main_menu_markup()
-        )
-
-        context.user_data.pop('new_transcription_title', None)
-
-        return ConversationHandler.END
-
-
-def extract_audio(video_path: str, audio_path: str) -> None:
-    os.makedirs(os.path.dirname(audio_path), exist_ok=True)
-
-    with VideoFileClip(video_path) as video:
-        video.audio.write_audiofile(audio_path, )
+    return await add_new_transcription_and_end_conversation(
+        update=update,
+        context=context,
+        file_type="Audio"
+    )
 
 
 async def handle_new_transcription_video(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
-    import time
-    start_time = time.time()
-
-    logging.info(f"{time.time() - start_time} - 1. video transcription started")
-    new_transription_video_file_id: str = update.message.video.file_id
-    current_chat_id: int = update.effective_chat.id
-    logging.info(f"{time.time() - start_time} - 2. Got new_transription_video_file_id: {new_transription_video_file_id} in chat {current_chat_id}")
-
-    try:
-        new_transcription_title: str = context.user_data.get('new_transcription_title', 'Без названия')
-
-        logging.info(f"{time.time() - start_time} - 3. Awaiting new_transcription_video_file")
-        new_transcription_video_file: File = await context.bot.get_file(new_transription_video_file_id)
-        new_transcription_video_file_path: str = new_transcription_video_file.file_path
-        logging.info(f"{time.time() - start_time} - 4. Got new_transcription_video_file with path {new_transcription_video_file_path}")
-
-        new_transcription_audio_file_path = "/".join(
-            new_transcription_video_file_path.split("/")[:-2]
-            +
-            ["music", f"{new_transription_video_file_id}.mp3"]
-        )
-
-        logging.info(f"{time.time() - start_time} - 5. Started audio extraction")
-        extract_audio(new_transcription_video_file_path, new_transcription_audio_file_path)
-        logging.info(f"{time.time() - start_time} - 6. Audio extraction done")
-
-        logging.info(f"{time.time() - start_time} - 7. Adding transcription to db")
-        add_transcription_to_db(
-            chat_id=current_chat_id,
-            title=new_transcription_title,
-            audio_file_path=new_transcription_audio_file_path,
-            status="Awaiting upload to transcription API"
-        )
-        logging.info(f"{time.time() - start_time} - 8. Done adding transcription to db")
-
-        logging.info(f"{time.time() - start_time} - 9. Sending message")
-        await update.message.reply_text(
-                text=(
-                    f"Ваша транскрипция '{new_transcription_title}' добавлена в очередь обработки. "
-                    f"В скором времени она будет готова. "
-                    "Чем я могу ещё помочь?"
-                ),
-                reply_markup=create_main_menu_markup()
-            )
-        logging.info(f"{time.time() - start_time} - 10. Message sent")
-
-        context.user_data.pop('new_transcription_title', None)
-
-        return ConversationHandler.END
-
-    except Exception as e:
-        logging.error(f"Error adding new transcription: {e}")
-        logging.info(f"time: {time.time() - start_time}")
-
-        await update.message.reply_text(
-            text=(
-                "Произошла ошибка при добавлении транскрипции. "
-                "Пожалуйста, повторите попытку позже."
-            ),
-            reply_markup=create_main_menu_markup()
-        )
-
-        context.user_data.pop('new_transcription_title', None)
-
-        return ConversationHandler.END
+    return await add_new_transcription_and_end_conversation(
+        update=update,
+        context=context,
+        file_type="Video"
+    )
 
 
 # noinspection PyUnusedLocal
@@ -206,6 +158,8 @@ async def cancel_new_transcription(
         ),
         reply_markup=create_main_menu_markup()
     )
+
+    logging.info(f"Cancelled new transcription from {chat_id}")
 
     return ConversationHandler.END
 

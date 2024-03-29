@@ -1,7 +1,14 @@
 from functools import wraps
-from typing import Dict, Any, Callable
+from typing import (
+    Dict,
+    Any,
+    Callable
+)
 
-from aiohttp import ClientSession, FormData
+from aiohttp import (
+    ClientSession,
+    FormData
+)
 from pydantic_settings import BaseSettings
 
 

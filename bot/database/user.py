@@ -14,12 +14,16 @@ def add_user_to_db(
 
     cursor.execute(
         '''
-        SELECT chat_id FROM users WHERE chat_id = ?
+        SELECT chat_id 
+        FROM users 
+        WHERE chat_id = ?
         ''',
         (chat_id,)
     )
 
-    if cursor.fetchone() is None:
+    no_such_user_in_db = cursor.fetchone() is None
+
+    if no_such_user_in_db:
         cursor.execute(
             '''
             INSERT INTO users (chat_id, username) 
@@ -29,4 +33,3 @@ def add_user_to_db(
         )
 
         db_connection.commit()
-        logging.info(f"User {username} added to db")
