@@ -24,11 +24,17 @@ def create_done_transcriptions_menu_markup(
     # noinspection PyUnresolvedReferences
     chat_id: int = query.message.chat_id
 
-    done_transcriptions: List[Dict[str, Any]] = get_all_user_transcriptions_with_given_status(
-        chat_id,
+    done_transcriptions: List[Dict[str, Any]] = []
+    for transcripton_status in [
         "Transcribed",
-        ["id", "title"]
-    )
+        "Transcribed and notified",
+        "Transcribed and failed to notify"
+    ]:
+        done_transcriptions += get_all_user_transcriptions_with_given_status(
+            chat_id,
+            transcripton_status,
+            ["id", "title"]
+        )
 
     keyboard = [
         [InlineKeyboardButton(transcription['title'], callback_data=f"change_menu_transcription:{transcription['id']}")]
