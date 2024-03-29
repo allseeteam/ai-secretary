@@ -15,7 +15,8 @@ from background_workers import (
     upload_any_files_to_transcription_api,
     fetch_any_transcription_from_api,
     extract_any_transcription_file_path_from_bot_server,
-    extract_audio_from_any_transcription_video
+    extract_audio_from_any_transcription_video,
+    notificate_any_transcription_status
 )
 from database import init_db
 from handlers import (
@@ -89,6 +90,12 @@ def extract_audio_from_any_transcription_video_loop():
         asyncio.run(asyncio.sleep(10))
 
 
+async def notificate_any_transcription_status_loop(application: Application):
+    while run_background_loops:
+        await notificate_any_transcription_status(application)
+        await asyncio.sleep(10)
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     logging.getLogger().setLevel(logging.INFO)
@@ -110,6 +117,7 @@ def main():
     logging.info("Starting background workers...")
     loop = asyncio.get_event_loop()
     loop.create_task(save_transcription_file_path_from_bot_server_to_db_loop(application))
+    loop.create_task(notificate_any_transcription_status_loop(application))
 
     logging.info("Starting bot...")
     application.run_polling()
