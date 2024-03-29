@@ -50,14 +50,24 @@ async def start_transcrition_discussion(
 
     try:
         transcripton_text: str = get_transcription_text_by_id(transcription_id)
+
+        file_response = openai_client.File.create(
+            file=transcription_text.encode(),
+            purpose='assistants'
+        )
+        file_id = file_response["id"]
+        context.user_data['transcription_file_id'] = file_id
+
         context.user_data['transcripton_assistant'] = openai_client.beta.assistants.create(
             name=f"Transcription Assistant {transcription_id}",
             instructions=(
-                "На основе данной текстовой транскрипции переговоров нескольких человек, отвечай на все мои вопросы:\n"
-                f"```\n{transcripton_text}\n```"
+                "На основе текстовой транскрипции переговоров, сохраненной в прикрепленном файле, "
+                "отвечай на все мои вопросы."
             ),
+            file_ids=[file_id],
             model="gpt-4-turbo-preview",
         )
+
         context.user_data['transcription_thread'] = openai_client.beta.threads.create()
 
         await context.bot.send_message(
@@ -76,7 +86,7 @@ async def start_transcrition_discussion(
     except Exception as e:
         logging.error(f"Error starting transcription discussion: {e}")
 
-        await stop_transcription_discussion(update, context)
+        await stop_transcription_discussion(update, context, is_error=True)
 
 
 async def handle_transcription_discussion_user_message(
@@ -125,32 +135,57 @@ async def handle_transcription_discussion_user_message(
     except Exception as e:
         logging.error(f"Error while handling transcription discussion message: {e}")
 
-        await stop_transcription_discussion(update, context)
+        await stop_transcription_discussion(update, context, is_error=True)
 
 
 # noinspection PyUnusedLocal
 async def stop_transcription_discussion(
         update: Update,
-        context: ContextTypes.DEFAULT_TYPE
+        context: ContextTypes.DEFAULT_TYPE,
+        is_error: bool = False
 ) -> int:
     global openai_client
 
     chat_id: int = update.effective_chat.id
     transcription_id: str = str(context.user_data['transcription_id'])
 
-    context.user_data.pop('message_count', None)
-    context.user_data.pop('transcription_id', None)
+    if context.user_data.get('transcripton_assistant'):
+        try:
+            openai_client.beta.assistants.delete(
+                assistant_id=context.user_data['transcripton_assistant'].id
+            )
+        except Exception as e:
+            logging.error(f"Error deleting transcription assistant: {e}. Maybe it never existed.")
 
-    try:
-        openai_client.beta.assistants.delete(
-            assistant_id=context.user_data['transcripton_assistant'].id
-        )
-    except Exception as e:
-        logging.error(f"Error deleting transcription assistant: {e}. Maybe it never existed.")
+    if context.user_data.get('transcription_thread'):
+        try:
+            openai_client.beta.threads.delete(
+                thread_id=context.user_data['transcription_thread'].id
+            )
+        except Exception as e:
+            logging.error(f"Error deleting transcription thread: {e}. Maybe it never existed.")
+
+    if context.user_data.get('transcription_file_id'):
+        try:
+            openai_client.File.delete(file_id=context.user_data['transcription_file_id'])
+        except Exception as e:
+            logging.error(f"Error deleting transcription file: {e}. Maybe it never existed.")
+
+    context.user_data.pop('transcription_id', None)
+    context.user_data.pop('transcripton_assistant', None)
+    context.user_data.pop('transcription_file_id', None)
+    context.user_data.pop('transcription_thread', None)
 
     await context.bot.send_message(
         chat_id=chat_id,
         text=(
+            (
+                "Произошла ошибка. Обсуждение было завершено. "
+                if is_error
+                else
+                "Обсуждение завершено. "
+            )
+            +
             "Чем я могу ещё помочь?"
         ),
         reply_markup=create_transcription_menu_markup_without_callback(
