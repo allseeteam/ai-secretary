@@ -13,7 +13,7 @@ async def notificate_any_transcription_status(application: Application) -> None:
         "Transcribed"
     ]:
         transcription_chat_id_and_title = get_details_for_any_transcription_with_given_status(
-            transcription_id_status=transcription_status,
+            transcription_status=transcription_status,
             details_to_get=["id", "chat_id", "title"]
         )
     
