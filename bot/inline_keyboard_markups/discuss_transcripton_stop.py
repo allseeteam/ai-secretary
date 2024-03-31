@@ -6,7 +6,7 @@ from telegram import (
 
 def create_stop_transcription_discussion_markup() -> InlineKeyboardMarkup:
     keyboard = [
-        [InlineKeyboardButton("Закончить обсуждение", callback_data='stop_transcription_discussion')]
+        [InlineKeyboardButton("🛑 Завершить обсуждение", callback_data='stop_transcription_discussion')]
     ]
 
     return InlineKeyboardMarkup(keyboard)

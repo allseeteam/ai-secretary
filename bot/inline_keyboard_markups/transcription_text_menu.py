@@ -15,8 +15,8 @@ def create_transcription_text_menu_markup(
     transcription_id: str = callback_query.data.split(":")[-1]
 
     keyboard = [
-        [InlineKeyboardButton("« Вернуться к текущей транскрипции", callback_data=f"change_menu_transcription:{transcription_id}")],
-        [InlineKeyboardButton("« Вернуться к списку транскрипций", callback_data="change_menu_done_transcriptions")],
-        [InlineKeyboardButton("« Вернуться в главное меню", callback_data="change_menu_main")]]
+        [InlineKeyboardButton("🔙 Назад", callback_data=f"change_menu_transcription:{transcription_id}")],
+        [InlineKeyboardButton("💾 К записям", callback_data="change_menu_done_transcriptions")],
+        [InlineKeyboardButton("🏠 В меню", callback_data="change_menu_main")]]
 
     return InlineKeyboardMarkup(keyboard)

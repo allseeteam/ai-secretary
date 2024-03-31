@@ -25,7 +25,8 @@ async def notificate_any_transcription_status(application: Application) -> None:
             try:
                 await application.bot.send_message(
                     chat_id=transcription_chat_id,
-                    text=f"Ваша транскрипция {transcription_title} успешно завершена!",
+                    text=f"✅ Ваша запись {transcription_title} успешно обработана! "
+                         f"Теперь можно ознакомиться с транскрипцией и обсудить содержание."
                 )
 
                 update_transcription_details_by_id(

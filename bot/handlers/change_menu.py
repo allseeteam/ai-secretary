@@ -29,7 +29,7 @@ async def handle_change_menu_main_callback(
     await callback_query.answer()
 
     await callback_query.edit_message_text(
-        text="Чем я могу помочь?",
+        text="Что сегодня на повестке? Добавить новую запись или задать вопросы по уже сохраненным?",
         reply_markup=create_main_menu_markup()
     )
 
@@ -42,7 +42,7 @@ async def handle_change_menu_done_transcriptions_callback(
     await callback_query.answer()
 
     await callback_query.edit_message_text(
-        text="Список ваших транскрипций:",
+        text="Список ваших записей:",
         reply_markup=create_done_transcriptions_menu_markup(update, context)
     )
 
@@ -55,7 +55,7 @@ async def handle_change_menu_transcription_callback(
     await callback_query.answer()
 
     await callback_query.edit_message_text(
-        text="Чем конкретно помочь с данной транскрипцией?",
+        text="Что делаем с записью? Получаем текст записи или ищем краткие выжимки, отвечая на вопросы?",
         reply_markup=create_transcription_menu_markup(update, context)
     )
 
@@ -76,13 +76,13 @@ async def handle_change_menu_transcription_text_callback(
     document = InputFile(transcription_text, filename="transcription_text.txt")
     await context.bot.send_document(
         chat_id=chat_id,
-        caption="Ваша транскрипция",
+        caption="Хотите сохранить транскрипцию? Скачайте файл и имейте всю информацию под рукой!",
         document=document
     )
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text="Чем ещё могу вам помочь с данной транскрипцией?",
+        text="Что ещё делаем с записью? Получаем текст записи или ищем краткие выжимки, отвечая на вопросы?",
         reply_markup=create_transcription_menu_markup(update, context)
     )
 

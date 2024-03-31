@@ -83,8 +83,8 @@ async def start_transcription_discussion(
         await context.bot.send_message(
             chat_id=chat_id,
             text=(
-                "Давайте обсудим вашу транскрипцию. "
-                "Вы можете задавать любые вопросы."
+                "У вас есть вопросы по записи? "
+                "Задавайте, и я подготовлю для вас краткую выжимку в нужном формате."
             ),
             reply_markup=create_stop_transcription_discussion_markup()
         )
