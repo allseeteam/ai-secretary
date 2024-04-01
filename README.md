@@ -49,7 +49,7 @@ git clone --recursive https://github.com/tdlib/telegram-bot-api.git && \
 Команда для запуска сервера бота:
 ```bash
 cd telegram-bot-api/build
- ./telegram-bot-api --api-id=${TELEGRAM_API_ID} --api-hash=${TELEGRAM_API_HASH}
+ ./telegram-bot-api --api-id=${TELEGRAM_API_ID} --api-hash=${TELEGRAM_API_HASH} --local
 ```
 
 #### Запуск бота
