@@ -16,8 +16,10 @@ from telegram.ext import (
 )
 
 from database import get_transcription_text_by_id
-from inline_keyboard_markups import create_transcription_menu_markup_without_callback
-from reply_keyboard_markups import create_stop_transcription_discussion_markup
+from inline_keyboard_markups import (
+    create_transcription_menu_markup_without_callback,
+    create_stop_transcription_discussion_markup
+)
 
 
 class OpenAISettings(BaseSettings):
@@ -33,7 +35,7 @@ DISCUSSING_TRANSCRIPTION = 1
 
 
 # noinspection PyUnusedLocal
-async def start_transcrition_discussion(
+async def start_transcription_discussion(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
@@ -81,8 +83,8 @@ async def start_transcrition_discussion(
         await context.bot.send_message(
             chat_id=chat_id,
             text=(
-                "Давайте обсудим вашу транскрипцию. "
-                "Вы можете задавать любые вопросы."
+                "У вас есть вопросы по записи? "
+                "Задавайте, и я подготовлю для вас краткую выжимку в нужном формате."
             ),
             reply_markup=create_stop_transcription_discussion_markup()
         )
@@ -164,10 +166,15 @@ async def stop_transcription_discussion(
 ) -> int:
     global openai_client
 
+    if not update.message:
+        callback_query: CallbackQuery = update.callback_query
+        await callback_query.answer()
+
     chat_id: int = update.effective_chat.id
     transcription_id: str = str(context.user_data['transcription_id'])
 
-    sticker_message = await update.message.reply_sticker(
+    sticker_message = await context.bot.send_sticker(
+        chat_id=chat_id,
         sticker='CAACAgIAAxkBAAJMS2YHPrVKVmiyNhVR3J5vQE2Qpu-kAAIjAAMoD2oUJ1El54wgpAY0BA'
     )
 
@@ -225,7 +232,7 @@ async def stop_transcription_discussion(
 handle_discuss_transcription = ConversationHandler(
     entry_points=[
         CallbackQueryHandler(
-            start_transcrition_discussion,
+            start_transcription_discussion,
             pattern="^discuss_transcription:([^:]+)$"
         )
     ],
@@ -238,6 +245,9 @@ handle_discuss_transcription = ConversationHandler(
         ],
     },
     fallbacks=[
-        MessageHandler(filters.Regex('^Закончить обсуждение$'), stop_transcription_discussion)
+        CallbackQueryHandler(
+            stop_transcription_discussion,
+            pattern="^stop_transcription_discussion"
+        )
     ]
 )

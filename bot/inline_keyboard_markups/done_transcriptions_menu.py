@@ -40,6 +40,6 @@ def create_done_transcriptions_menu_markup(
         [InlineKeyboardButton(transcription['title'], callback_data=f"change_menu_transcription:{transcription['id']}")]
         for transcription in done_transcriptions
     ]
-    keyboard.append([InlineKeyboardButton("« Вернуться в главное меню", callback_data="change_menu_main")])
+    keyboard.append([InlineKeyboardButton("🏠 В меню", callback_data="change_menu_main")])
 
     return InlineKeyboardMarkup(keyboard)
